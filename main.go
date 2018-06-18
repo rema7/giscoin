@@ -5,6 +5,7 @@ import (
 	"giscoin/block"
 	"giscoin/blockchain"
 	"giscoin/concensus"
+	"strconv"
 )
 
 func GenerateBlock(bc *blockchain.Blockchain, data string) *block.Block {
@@ -31,6 +32,8 @@ func main() {
 		fmt.Printf("Previous hash: %x\n", b.PrevBlockHash)
 		fmt.Printf("Data: %s\n", b.Data)
 		fmt.Printf("Hash: %x\n", b.Hash)
+		pow := concensus.NewProofOfWork(b)
+		fmt.Printf("Pow: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()
 	}
 }

@@ -2,14 +2,48 @@ package blockchain
 
 import (
 	"giscoin/block"
+	"github.com/boltdb/bolt"
+	"log"
 )
 
+const dbFile = "blockchain.db"
+const blocksBucket = "blocks"
+
 type Blockchain struct {
-	Blocks []*block.Block
+	tip []byte
+	db  *bolt.DB
 }
 
-func (bc *Blockchain) AddBlock(newBlock *block.Block) {
-	bc.Blocks = append(bc.Blocks, newBlock)
+func (bc *Blockchain) AddBlock(data string) {
+	var lastHash []byte
+
+	err := bc.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		lastHash = b.Get([]byte("1"))
+		return nil
+	})
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	newBlock := block.NewBlock(data, lastHash)
+
+	err := bc.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+		err := b.Put(newBlock.Hash, newBlock.Serialize())
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = b.Put([]byte("1"), newBlock.Hash)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		bc.tip = newBlock.Hash
+		return nil
+	})
 }
 
 func NewGenesisBlock() *block.Block {
@@ -17,5 +51,37 @@ func NewGenesisBlock() *block.Block {
 }
 
 func NewBlockchain() *Blockchain {
-	return &Blockchain{[]*block.Block{NewGenesisBlock()}}
+	var tip []byte
+
+	db, err := bolt.Open(dbFile, 0600, nil)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(blocksBucket))
+
+		if b == nil {
+			genesis := NewGenesisBlock()
+
+			b, err := tx.CreateBucket([]byte(blocksBucket))
+			if err != nil {
+				log.Panic(err)
+			}
+
+			err = b.Put(genesis.Hash, genesis.Serialize())
+			err = b.Put([]byte("1"), genesis.Hash)
+			tip = genesis.Hash
+
+		} else {
+			tip = b.Get([]byte("1"))
+		}
+		return nil
+	})
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return &Blockchain{tip, db}
 }

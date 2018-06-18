@@ -1,6 +1,8 @@
 package block
 
 import (
+	"bytes"
+	"encoding/gob"
 	"time"
 )
 
@@ -22,4 +24,14 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 	}
 
 	return block
+}
+
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+
+	encoder := gob.NewEncoder(&result)
+
+	encoder.Encode(b)
+
+	return result.Bytes()
 }
