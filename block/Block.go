@@ -3,6 +3,7 @@ package block
 import (
 	"bytes"
 	"encoding/gob"
+	"fmt"
 	"time"
 )
 
@@ -34,4 +35,11 @@ func (b *Block) Serialize() []byte {
 	encoder.Encode(b)
 
 	return result.Bytes()
+}
+
+func (b Block) ToSting() {
+	fmt.Printf("Previous hash: %x\n", b.PrevBlockHash)
+	fmt.Printf("Data: %s\n", b.Data)
+	fmt.Printf("Hash: %x\n", b.Hash)
+	fmt.Println()
 }
