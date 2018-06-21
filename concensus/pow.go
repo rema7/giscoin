@@ -3,7 +3,6 @@ package concensus
 import (
 	"bytes"
 	"crypto/sha256"
-	"fmt"
 	"giscoin/block"
 	"giscoin/utils"
 	"math"
@@ -18,13 +17,14 @@ type ProofOfWork struct {
 }
 
 func (pow *ProofOfWork) prepareData(nonce int) []byte {
-	data := bytes.Join([][]byte{
-		pow.block.PrevBlockHash,
-		pow.block.Data,
-		utils.IntToHex(pow.block.Timestamp),
-		utils.IntToHex(int64(targetBits)),
-		utils.IntToHex(int64(nonce)),
-	}, []byte{})
+	data := bytes.Join(
+		[][]byte{
+			pow.block.PrevBlockHash,
+			pow.block.HashTransactions(),
+			utils.IntToHex(pow.block.Timestamp),
+			utils.IntToHex(int64(targetBits)),
+			utils.IntToHex(int64(nonce)),
+		}, []byte{})
 	return data
 }
 
@@ -37,7 +37,6 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	for nonce < math.MaxInt64 {
 		data := pow.prepareData(nonce)
 		hash = sha256.Sum256(data)
-		fmt.Printf("\r%x", hash)
 		hashInt.SetBytes(hash[:])
 
 		if hashInt.Cmp(pow.target) == -1 {
@@ -45,7 +44,6 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 		} else {
 			nonce++
 		}
-		fmt.Print("\n\n")
 	}
 
 	return nonce, hash[:]
