@@ -57,14 +57,14 @@ func (cli *CLI) send(from, to string, amount int) {
 }
 
 func (cli *CLI) printChain() {
-	bci := blockchain.BlockchainIterator{}
+	bc := blockchain.NewBlockchain("")
+	defer bc.Db.Close()
+	bci := bc.Iterator()
 
 	for {
 		block := bci.Next()
 
-		fmt.Printf("Prev. hash: %x\n", block.PrevBlockHash)
-		fmt.Printf("Data: %v\n", block.Transactions)
-		fmt.Printf("Hash: %x\n", block.Hash)
+		block.ToSting()
 		pow := concensus.NewProofOfWork(block)
 		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
 		fmt.Println()

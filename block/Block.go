@@ -58,7 +58,10 @@ func (b *Block) HashTransactions() []byte {
 
 func (b Block) ToSting() {
 	fmt.Printf("Previous hash: %x\n", b.PrevBlockHash)
-	fmt.Printf("Data: %v\n", b.Transactions)
+	fmt.Println("Transactions:")
+	for _, tx := range b.Transactions {
+		tx.ToString()
+	}
 	fmt.Printf("Hash: %x\n", b.Hash)
 	fmt.Println()
 }
