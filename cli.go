@@ -6,6 +6,8 @@ import (
 	"giscoin/blockchain"
 	"giscoin/concensus"
 	"giscoin/transaction"
+	"giscoin/utils"
+	"giscoin/wallets"
 	"log"
 	"os"
 	"strconv"
@@ -27,10 +29,21 @@ func (cli *CLI) validateArgs() {
 	}
 }
 
-func (cli *CLI) createChain(address string) {
-	bc := blockchain.CreateBlockchain(address)
+func (cli *CLI) initBlockchain(address string) {
+	if !wallets.ValidateAddress(address) {
+		log.Panic("Invalid address")
+	}
+	bc := blockchain.InitBlockchain(address)
 	bc.Db.Close()
 	fmt.Println("Done!")
+}
+
+func (cli *CLI) createWallet() {
+	_wallets, _ := wallets.NewWallets()
+	address := _wallets.CreateWallet()
+	_wallets.SaveToFile()
+
+	fmt.Printf("Your new address: %s\n", address)
 }
 
 func (cli *CLI) getBalance(address string) {
@@ -39,7 +52,9 @@ func (cli *CLI) getBalance(address string) {
 
 	balance := 0
 
-	UTXOs := bc.FindUTXO(address)
+	pubKeyHash := utils.Base58Decode([]byte(address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	UTXOs := bc.FindUTXO(pubKeyHash)
 
 	for _, out := range UTXOs {
 		balance += out.Value
@@ -78,20 +93,20 @@ func (cli *CLI) printChain() {
 func (cli *CLI) Run() {
 	cli.validateArgs()
 
-	createChainCmd := flag.NewFlagSet("createchain", flag.ExitOnError)
+	initChainCmd := flag.NewFlagSet("init", flag.ExitOnError)
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 
-	createChainData := createChainCmd.String("address", "", "Address")
+	initChainData := initChainCmd.String("address", "", "Address")
 	getBalanceData := getBalanceCmd.String("address", "", "Address")
-	sendFrom := sendCmd.String("from", "", "Source wallet address")
-	sendTo := sendCmd.String("to", "", "Destination wallet address")
+	sendFrom := sendCmd.String("from", "", "Source wallets address")
+	sendTo := sendCmd.String("to", "", "Destination wallets address")
 	sendAmount := sendCmd.Int("amount", 0, "Amount of money")
 
 	switch os.Args[1] {
-	case "createchain":
-		err := createChainCmd.Parse(os.Args[2:])
+	case "init":
+		err := initChainCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -122,11 +137,11 @@ func (cli *CLI) Run() {
 		cli.getBalance(*getBalanceData)
 	}
 
-	if createChainCmd.Parsed() {
-		if *createChainData == "" {
+	if initChainCmd.Parsed() {
+		if *initChainData == "" {
 			os.Exit(1)
 		}
-		cli.createChain(*createChainData)
+		cli.initBlockchain(*initChainData)
 	}
 
 	if sendCmd.Parsed() {

@@ -65,3 +65,12 @@ func (b Block) ToSting() {
 	fmt.Printf("Hash: %x\n", b.Hash)
 	fmt.Println()
 }
+
+func DeserializeBlock(d []byte) (*Block, error) {
+	var b Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&b)
+
+	return &b, err
+}
