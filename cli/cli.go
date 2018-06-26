@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"giscoin/blockchain"
 	"giscoin/concensus"
-	"giscoin/utils"
-	"giscoin/utxo"
-	"giscoin/wallets"
 	"log"
 	"os"
 	"strconv"
@@ -27,14 +24,6 @@ func (cli *CLI) validateArgs() {
 		cli.printUsage()
 		os.Exit(1)
 	}
-}
-
-func (cli *CLI) createWallet() {
-	_wallets, _ := wallets.NewWallets()
-	address := _wallets.CreateWallet()
-	_wallets.SaveToFile()
-
-	fmt.Printf("Your new address: %s\n", address)
 }
 
 func (cli *CLI) printChain() {
