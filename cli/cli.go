@@ -1,12 +1,12 @@
-package main
+package cli
 
 import (
 	"flag"
 	"fmt"
 	"giscoin/blockchain"
 	"giscoin/concensus"
-	"giscoin/transaction"
 	"giscoin/utils"
+	"giscoin/utxo"
 	"giscoin/wallets"
 	"log"
 	"os"
@@ -29,15 +29,6 @@ func (cli *CLI) validateArgs() {
 	}
 }
 
-func (cli *CLI) initBlockchain(address string) {
-	if !wallets.ValidateAddress(address) {
-		log.Panic("Invalid address")
-	}
-	bc := blockchain.InitBlockchain(address)
-	bc.Db.Close()
-	fmt.Println("Done!")
-}
-
 func (cli *CLI) createWallet() {
 	_wallets, _ := wallets.NewWallets()
 	address := _wallets.CreateWallet()
@@ -46,42 +37,20 @@ func (cli *CLI) createWallet() {
 	fmt.Printf("Your new address: %s\n", address)
 }
 
-func (cli *CLI) getBalance(address string) {
-	bc := blockchain.NewBlockchain(address)
-	defer bc.Db.Close()
-
-	balance := 0
-
-	pubKeyHash := utils.Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	UTXOs := bc.FindUTXO(pubKeyHash)
-
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
-	fmt.Printf("Balance of '%s': %d\n", address, balance)
-}
-
-func (cli *CLI) send(from, to string, amount int) {
-	bc := blockchain.NewBlockchain(from)
-	defer bc.Db.Close()
-
-	tx := bc.NewUTXOTransaction(from, to, amount)
-	bc.MineBlock([]*transaction.Transaction{tx})
-	fmt.Println("Success!")
-}
-
 func (cli *CLI) printChain() {
 	bc := blockchain.NewBlockchain("")
-	defer bc.Db.Close()
+	defer bc.DB.Close()
 	bci := bc.Iterator()
 
 	for {
 		block := bci.Next()
-
-		block.ToSting()
+		fmt.Printf("============ Block %x ============\n", block.Hash)
+		fmt.Printf("Prev. block: %x\n", block.PrevBlockHash)
 		pow := concensus.NewProofOfWork(block)
-		fmt.Printf("PoW: %s\n", strconv.FormatBool(pow.Validate()))
+		fmt.Printf("PoW: %s\n\n", strconv.FormatBool(pow.Validate()))
+		for _, tx := range block.Transactions {
+			fmt.Println(tx)
+		}
 		fmt.Println()
 
 		if len(block.PrevBlockHash) == 0 {
@@ -97,6 +66,7 @@ func (cli *CLI) Run() {
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
+	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 
 	initChainData := initChainCmd.String("address", "", "Address")
 	getBalanceData := getBalanceCmd.String("address", "", "Address")
@@ -107,6 +77,11 @@ func (cli *CLI) Run() {
 	switch os.Args[1] {
 	case "init":
 		err := initChainCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -128,6 +103,10 @@ func (cli *CLI) Run() {
 	default:
 		cli.printUsage()
 		os.Exit(1)
+	}
+
+	if createWalletCmd.Parsed() {
+		cli.createWallet()
 	}
 
 	if getBalanceCmd.Parsed() {

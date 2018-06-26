@@ -2,12 +2,12 @@ package wallets
 
 import (
 	"bytes"
-	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"giscoin/utils"
+	"golang.org/x/crypto/ripemd160"
 	"log"
 )
 
@@ -38,7 +38,7 @@ func NewWallet() *Wallet {
 
 func HashPubKey(pubKey []byte) []byte {
 	publicSHA256 := sha256.Sum256(pubKey)
-	RIPEMD160Hasher := crypto.RIPEMD160.New()
+	RIPEMD160Hasher := ripemd160.New()
 
 	_, err := RIPEMD160Hasher.Write(publicSHA256[:])
 	if err != nil {

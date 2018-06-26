@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"strings"
 )
 
 const subsidy = 10
@@ -38,19 +39,27 @@ func (tx Transaction) IsCoinbase() bool {
 	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
 }
 
-func (tx *Transaction) ToString() {
-	fmt.Printf("ID %s", hex.EncodeToString(tx.ID))
-	fmt.Println()
-	fmt.Println("Vin:")
-	for _, vin := range tx.Vin {
-		fmt.Printf("\tTxId: %s VoutIdx: %d Signature: %s", hex.EncodeToString(vin.Txid), vin.Vout, vin.Signature)
-		fmt.Println()
+func (tx *Transaction) String() string {
+	var lines []string
+
+	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
+
+	for i, input := range tx.Vin {
+
+		lines = append(lines, fmt.Sprintf("     Input %d:", i))
+		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
+		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
+		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
+		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
 	}
-	fmt.Println("Vout:")
-	for _, vout := range tx.Vout {
-		fmt.Printf("\tValue: %d, Signature: %s", vout.Value, vout.PubKeyHash)
-		fmt.Println()
+
+	for i, output := range tx.Vout {
+		lines = append(lines, fmt.Sprintf("     Output %d:", i))
+		lines = append(lines, fmt.Sprintf("       Value:  %d", output.Value))
+		lines = append(lines, fmt.Sprintf("       Script: %x", output.PubKeyHash))
 	}
+
+	return strings.Join(lines, "\n")
 }
 
 func (tx Transaction) Serialize() []byte {

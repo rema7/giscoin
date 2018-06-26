@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/gob"
-	"fmt"
 	"giscoin/transaction"
 	"time"
 )
@@ -54,16 +53,6 @@ func (b *Block) HashTransactions() []byte {
 	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
 	return txHash[:]
-}
-
-func (b Block) ToSting() {
-	fmt.Printf("Previous hash: %x\n", b.PrevBlockHash)
-	fmt.Println("Transactions:")
-	for _, tx := range b.Transactions {
-		tx.ToString()
-	}
-	fmt.Printf("Hash: %x\n", b.Hash)
-	fmt.Println()
 }
 
 func DeserializeBlock(d []byte) (*Block, error) {
