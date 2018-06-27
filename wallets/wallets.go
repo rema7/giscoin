@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 )
 
 type Wallets struct {
@@ -84,4 +85,14 @@ func (ws Wallets) SaveToFile() {
 	if err != nil {
 		log.Panic(err)
 	}
+}
+
+func (ws Wallets) String() string {
+	var lines []string
+	idx := 0
+	for key := range ws.Wallets {
+		lines = append(lines, fmt.Sprintf("%d: %s", idx, key))
+		idx++
+	}
+	return strings.Join(lines, "\n")
 }

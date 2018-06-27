@@ -38,6 +38,13 @@ func (outs TXOutputs) Serialize() []byte {
 	return buff.Bytes()
 }
 
+func NewTXOutput(value int, address string) *TXOutput {
+	txo := &TXOutput{value, nil}
+	txo.Lock([]byte(address))
+
+	return txo
+}
+
 func DeserializeOutputs(data []byte) TXOutputs {
 	var outputs TXOutputs
 

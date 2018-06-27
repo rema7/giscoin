@@ -37,9 +37,9 @@ func NewUTXOTransaction(from, to string, amount int, bc *blockchain.Blockchain, 
 		}
 	}
 
-	outputs = append(outputs, transaction.TXOutput{amount, pubKeyHash})
+	outputs = append(outputs, *transaction.NewTXOutput(amount, to))
 	if acc > amount {
-		outputs = append(outputs, transaction.TXOutput{acc - amount, pubKeyHash})
+		outputs = append(outputs, *transaction.NewTXOutput(acc-amount, from))
 	}
 
 	tx := transaction.Transaction{nil, inputs, outputs}

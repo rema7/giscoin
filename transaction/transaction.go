@@ -157,13 +157,6 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	return Transaction{tx.ID, inputs, outputs}
 }
 
-func NewTXOutput(value int, address string) *TXOutput {
-	txo := &TXOutput{value, nil}
-	txo.Lock([]byte(address))
-
-	return txo
-}
-
 func NewCoinbaseTX(to, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Reward to '%s'", to)
