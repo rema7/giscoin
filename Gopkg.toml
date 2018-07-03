@@ -44,3 +44,7 @@
 [[constraint]]
   name = "github.com/inconshreveable/log15"
   version = "2.13.0"
+
+[[constraint]]
+  name = "github.com/urfave/cli"
+  version = "1.20.0"

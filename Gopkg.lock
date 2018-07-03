@@ -113,6 +113,12 @@
   revision = "0d5a0ceb10cf9ab89fdd744cc8c50a83134f6697"
 
 [[projects]]
+  name = "github.com/urfave/cli"
+  packages = ["."]
+  revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+  version = "v1.20.0"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ripemd160"]
@@ -161,6 +167,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f75b5d0718119753d2aaced57bf814729553d686fc3392420488b48b154461b9"
+  inputs-digest = "efbb2eea20eaee591bb3a9922460c827b9ec515df4c58cc125b4e5fbf44abccc"
   solver-name = "gps-cdcl"
   solver-version = 1
